@@ -241,7 +241,7 @@ LIBC_INLINE constexpr void quick_mul_hi(cpp::array<word, N> &dst,
 }
 
 template <typename word, size_t N>
-LIBC_INLINE constexpr bool is_negative(cpp::array<word, N> &array) {
+LIBC_INLINE constexpr bool is_negative(const cpp::array<word, N> &array) {
   using signed_word = cpp::make_signed_t<word>;
   return cpp::bit_cast<signed_word>(array.back()) < 0;
 }
@@ -465,8 +465,7 @@ public:
   }
 
   // Initialize the first word to |v| and the rest to 0.
-  template <typename T, typename = cpp::enable_if_t<cpp::is_integral_v<T> &&
-                                                    !cpp::is_same_v<T, bool>>>
+  template <typename T, typename = cpp::enable_if_t<cpp::is_integral_v<T>>>
   LIBC_INLINE constexpr BigInt(T v) {
     constexpr size_t T_SIZE = sizeof(T) * CHAR_BIT;
     const bool is_neg = v < 0;

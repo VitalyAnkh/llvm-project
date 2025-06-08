@@ -49,7 +49,6 @@
 #include "clang/Sema/TemplateDeduction.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/STLForwardCompat.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/SaveAndRestore.h"
@@ -2753,8 +2752,7 @@ CXXBaseSpecifier *Sema::CheckBaseSpecifier(CXXRecordDecl *Class,
       std::string Quals =
           BaseType.getQualifiers().getAsString(Context.getPrintingPolicy());
       Diag(BaseLoc, diag::warn_qual_base_type)
-          << Quals << std::count(Quals.begin(), Quals.end(), ' ') + 1
-          << BaseType;
+          << Quals << llvm::count(Quals, ' ') + 1 << BaseType;
       Diag(BaseLoc, diag::note_base_class_specified_here) << BaseType;
     }
 
@@ -13199,6 +13197,7 @@ NamedDecl *Sema::BuildUsingDeclaration(
     if (getLangOpts().CPlusPlus14 && II && II->isStr("gets") &&
         CurContext->isStdNamespace() &&
         isa<TranslationUnitDecl>(LookupContext) &&
+        PP.NeedsStdLibCxxWorkaroundBefore(2016'12'21) &&
         getSourceManager().isInSystemHeader(UsingLoc))
       return nullptr;
     UsingValidatorCCC CCC(HasTypenameKeyword, IsInstantiation, SS.getScopeRep(),
@@ -17694,6 +17693,8 @@ void Sema::DiagnoseStaticAssertDetails(const Expr *E) {
           << DiagSide[0].ValueString << Op->getOpcodeStr()
           << DiagSide[1].ValueString << Op->getSourceRange();
     }
+  } else {
+    DiagnoseTypeTraitDetails(E);
   }
 }
 
